@@ -1,5 +1,5 @@
-import { Message } from 'src/messages/dto/message-res.dto';
+import { MessageResponseDto } from 'src/messages/dto/message-res.dto';
 
 export interface ServerToClientEvents {
-  newMessage: (payload: Message) => void;
+  newMessage: (payload: MessageResponseDto) => void;
 }

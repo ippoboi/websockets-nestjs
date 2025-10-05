@@ -6,7 +6,7 @@ import {
 
 import { Server } from 'socket.io';
 import { ServerToClientEvents } from './types/events';
-import { Message } from 'src/messages/dto/message-res.dto';
+import { MessageResponseDto } from 'src/messages/dto/message-res.dto';
 
 @WebSocketGateway({ namespace: 'events' })
 export class EventsGateway {
@@ -18,7 +18,7 @@ export class EventsGateway {
     return 'Hello world!';
   }
 
-  sendMessage(message: Message) {
+  sendMessage(message: MessageResponseDto) {
     this.server.emit('newMessage', message);
   }
 }

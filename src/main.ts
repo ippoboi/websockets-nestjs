@@ -20,11 +20,24 @@ async function bootstrap() {
     .setTitle('Websocket Chat API')
     .setDescription('The websocket chat API description')
     .setVersion('0.0.1')
-    .addTag('websocket')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .addTag('Authentication', 'User authentication endpoints')
+    .addTag('Messages', 'Message management endpoints')
+    .addTag('Conversations', 'Conversation management endpoints')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
-bootstrap();
+void bootstrap();
