@@ -62,6 +62,8 @@ export class ConversationsService {
               select: {
                 id: true,
                 username: true,
+                isOnline: true,
+                lastSeen: true,
               },
             },
           },
@@ -72,6 +74,16 @@ export class ConversationsService {
               select: {
                 id: true,
                 username: true,
+              },
+            },
+            readReceipts: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                  },
+                },
               },
             },
           },
@@ -85,7 +97,10 @@ export class ConversationsService {
       updatedAt: conversation.updatedAt,
       participants: conversation.participants.map((p) => ({
         id: p.id,
-        user: p.user,
+        user: {
+          ...p.user,
+          lastSeen: p.user.lastSeen || undefined,
+        },
         createdAt: p.createdAt,
       })),
       lastMessage: conversation.lastMessage || undefined,
@@ -122,6 +137,16 @@ export class ConversationsService {
                 username: true,
               },
             },
+            readReceipts: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -136,7 +161,10 @@ export class ConversationsService {
       updatedAt: conversation.updatedAt,
       participants: conversation.participants.map((p) => ({
         id: p.id,
-        user: p.user,
+        user: {
+          ...p.user,
+          lastSeen: p.user.lastSeen || undefined,
+        },
         createdAt: p.createdAt,
       })),
       lastMessage: conversation.lastMessage || undefined,
@@ -174,6 +202,16 @@ export class ConversationsService {
                 username: true,
               },
             },
+            readReceipts: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -189,7 +227,10 @@ export class ConversationsService {
       updatedAt: conversation.updatedAt,
       participants: conversation.participants.map((p) => ({
         id: p.id,
-        user: p.user,
+        user: {
+          ...p.user,
+          lastSeen: p.user.lastSeen || undefined,
+        },
         createdAt: p.createdAt,
       })),
       lastMessage: conversation.lastMessage || undefined,

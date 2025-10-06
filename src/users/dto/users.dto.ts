@@ -12,4 +12,17 @@ export class UserDto {
     example: 'john_doe',
   })
   username: string;
+
+  @ApiProperty({
+    description: 'Whether the user is currently online',
+    example: true,
+  })
+  isOnline: boolean;
+
+  @ApiProperty({
+    description: 'When the user was last seen (if offline)',
+    example: '2023-01-01T00:00:00.000Z',
+    required: false,
+  })
+  lastSeen?: Date;
 }

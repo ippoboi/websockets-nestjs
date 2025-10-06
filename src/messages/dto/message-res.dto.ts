@@ -49,4 +49,43 @@ export class MessageResponseDto {
     id: string;
     username: string;
   };
+
+  @ApiProperty({
+    description: 'Read receipts for this message',
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: '123e4567-e89b-12d3-a456-426614174000' },
+        userId: {
+          type: 'string',
+          example: '123e4567-e89b-12d3-a456-426614174000',
+        },
+        readAt: {
+          type: 'string',
+          format: 'date-time',
+          example: '2023-01-01T00:00:00.000Z',
+        },
+        user: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              example: '123e4567-e89b-12d3-a456-426614174000',
+            },
+            username: { type: 'string', example: 'john_doe' },
+          },
+        },
+      },
+    },
+  })
+  readReceipts: {
+    id: string;
+    userId: string;
+    readAt: Date;
+    user: {
+      id: string;
+      username: string;
+    };
+  }[];
 }

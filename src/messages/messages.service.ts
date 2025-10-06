@@ -59,6 +59,16 @@ export class MessagesService {
             username: true,
           },
         },
+        readReceipts: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -85,6 +95,16 @@ export class MessagesService {
             username: true,
           },
         },
+        readReceipts: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -102,6 +122,16 @@ export class MessagesService {
           select: {
             id: true,
             username: true,
+          },
+        },
+        readReceipts: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
           },
         },
       },
@@ -140,6 +170,16 @@ export class MessagesService {
           select: {
             id: true,
             username: true,
+          },
+        },
+        readReceipts: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
           },
         },
       },
@@ -181,6 +221,16 @@ export class MessagesService {
             username: true,
           },
         },
+        readReceipts: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: 'asc',
@@ -193,7 +243,7 @@ export class MessagesService {
   async markAsRead(
     conversationId: string,
     userId: string,
-  ): Promise<{ message: string }> {
+  ): Promise<{ message: string; messageIds: string[] }> {
     // Get all unread messages in the conversation
     const unreadMessages = await this.prisma.client.message.findMany({
       where: {
@@ -208,6 +258,8 @@ export class MessagesService {
       select: { id: true },
     });
 
+    const messageIds = unreadMessages.map((msg) => msg.id);
+
     if (unreadMessages.length > 0) {
       // Create read receipts for all unread messages
       await this.prisma.client.messageReadReceipt.createMany({
@@ -219,7 +271,7 @@ export class MessagesService {
       });
     }
 
-    return { message: 'Messages marked as read' };
+    return { message: 'Messages marked as read', messageIds };
   }
 
   async getUnreadCount(

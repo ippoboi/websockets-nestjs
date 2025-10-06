@@ -481,14 +481,27 @@ export class EventsGateway
       }
 
       // Mark messages as read
-      await this.messagesService.markAsRead(payload.conversationId, userId);
+      const result = await this.messagesService.markAsRead(
+        payload.conversationId,
+        userId,
+      );
 
-      // Broadcast read receipt to other users in conversation
-      this.server.to(payload.conversationId).emit('messagesRead', {
+      Logger.log(
+        `📧 User ${userId} marked ${result.messageIds.length} messages as read in conversation ${payload.conversationId}`,
+      );
+      Logger.log(`📧 Message IDs: ${result.messageIds.join(', ')}`);
+
+      // Broadcast read receipt to other users in conversation (exclude the user who marked as read)
+      client.to(payload.conversationId).emit('messagesRead', {
         conversationId: payload.conversationId,
         userId,
+        messageIds: result.messageIds,
         readAt: new Date(),
       });
+
+      Logger.log(
+        `📧 Broadcasted messagesRead event to other users in conversation ${payload.conversationId}`,
+      );
 
       Logger.log(
         `User ${userId} marked messages as read in conversation ${payload.conversationId}`,

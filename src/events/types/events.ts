@@ -7,6 +7,7 @@ export interface ServerToClientEvents {
   messagesRead: (payload: {
     conversationId: string;
     userId: string;
+    messageIds: string[];
     readAt: Date;
   }) => void;
   userOnlineStatusChanged: (payload: {
