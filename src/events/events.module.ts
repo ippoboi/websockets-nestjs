@@ -1,8 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { EventsGateway } from './events.gateway';
+import { MessagesModule } from '../messages/messages.module';
+import { ConversationsModule } from '../conversations/conversations.module';
+import { PrismaService } from '../prisma.service';
 
 @Module({
-  providers: [EventsGateway],
+  imports: [forwardRef(() => MessagesModule), ConversationsModule],
+  providers: [EventsGateway, PrismaService],
   exports: [EventsGateway],
 })
 export class EventsModule {}

@@ -3,6 +3,8 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from './dto';
@@ -13,6 +15,7 @@ import { ConversationsService } from '../conversations/conversations.service';
 export class MessagesService {
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => EventsGateway))
     private readonly eventsGateway: EventsGateway,
     private readonly conversationsService: ConversationsService,
   ) {}
@@ -59,7 +62,14 @@ export class MessagesService {
       },
     });
 
-    this.eventsGateway.sendMessage(createdMessage);
+    // Update conversation's last message
+    await this.prisma.client.conversation.update({
+      where: { id: conversationId },
+      data: {
+        lastMessageId: createdMessage.id,
+        lastMessageAt: createdMessage.createdAt,
+      },
+    });
 
     return createdMessage;
   }
@@ -178,5 +188,56 @@ export class MessagesService {
     });
 
     return messages;
+  }
+
+  async markAsRead(
+    conversationId: string,
+    userId: string,
+  ): Promise<{ message: string }> {
+    // Get all unread messages in the conversation
+    const unreadMessages = await this.prisma.client.message.findMany({
+      where: {
+        conversationId,
+        authorId: { not: userId }, // Don't mark own messages as read
+        readReceipts: {
+          none: {
+            userId,
+          },
+        },
+      },
+      select: { id: true },
+    });
+
+    if (unreadMessages.length > 0) {
+      // Create read receipts for all unread messages
+      await this.prisma.client.messageReadReceipt.createMany({
+        data: unreadMessages.map((message) => ({
+          messageId: message.id,
+          userId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    return { message: 'Messages marked as read' };
+  }
+
+  async getUnreadCount(
+    conversationId: string,
+    userId: string,
+  ): Promise<number> {
+    const count = await this.prisma.client.message.count({
+      where: {
+        conversationId,
+        authorId: { not: userId }, // Don't count own messages
+        readReceipts: {
+          none: {
+            userId,
+          },
+        },
+      },
+    });
+
+    return count;
   }
 }

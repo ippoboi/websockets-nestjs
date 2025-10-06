@@ -1,22 +1,31 @@
 import { Injectable } from '@nestjs/common';
-
-export type User = {
-  userId: number;
-  username: string;
-  password: string; // In production, use hashed passwords
-};
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [
-    {
-      userId: 1,
-      username: 'testUser',
-      password: 'test1234', // Use bcrypt hash in production
-    },
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
-  findOne(username: string): User | undefined {
-    return this.users.find((user) => user.username === username);
+  async searchUsers(query: string) {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    const users = await this.prisma.client.user.findMany({
+      where: {
+        username: {
+          contains: query,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        isOnline: true,
+        lastSeen: true,
+      },
+      take: 10,
+    });
+
+    return users;
   }
 }

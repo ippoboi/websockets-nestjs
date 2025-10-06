@@ -52,5 +52,5 @@ export class ConversationResponseDto {
     required: false,
     type: MessageResponseDto,
   })
-  latestMessage?: MessageResponseDto;
+  lastMessage?: MessageResponseDto;
 }

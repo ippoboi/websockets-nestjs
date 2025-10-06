@@ -4,15 +4,12 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { verify } from 'jsonwebtoken';
 import { Observable } from 'rxjs';
-import { Socket } from 'socket.io';
+import { AuthenticatedSocket } from 'src/events/events.gateway';
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
-
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -20,16 +17,31 @@ export class WsJwtGuard implements CanActivate {
       return true;
     }
 
-    const client: Socket = context.switchToWs().getClient();
-    WsJwtGuard.validateToken(client);
+    const client: AuthenticatedSocket = context.switchToWs().getClient();
+    // If user is already authenticated (from connection), allow access
+    if (client.user) {
+      return true;
+    }
 
-    return true;
+    // Only validate token during initial connection
+    try {
+      const payload = WsJwtGuard.validateToken(client);
+      // Attach user information to the socket for message handlers
+      client.user = payload as { sub: string; username: string };
+      return true;
+    } catch (error) {
+      Logger.error('WebSocket authentication failed:', error);
+      return false;
+    }
   }
 
-  static validateToken(client: Socket) {
-    const { authorization } = client.handshake.headers;
-    Logger.log({ authorization }, 'I got the auth!');
-    const token: string = authorization?.split(' ')[1] ?? '';
+  static validateToken(client: AuthenticatedSocket) {
+    const token = client.handshake.auth?.token as string;
+
+    if (!token) {
+      throw new Error('Missing authentication token');
+    }
+
     const payload = verify(token, process.env.JWT_SECRET || '7zUcwU4ZszLp5ytM');
 
     return payload;

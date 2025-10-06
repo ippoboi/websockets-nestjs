@@ -66,7 +66,7 @@ export class ConversationsService {
             },
           },
         },
-        messages: {
+        lastMessage: {
           include: {
             user: {
               select: {
@@ -75,10 +75,6 @@ export class ConversationsService {
               },
             },
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: 1,
         },
       },
     });
@@ -92,7 +88,7 @@ export class ConversationsService {
         user: p.user,
         createdAt: p.createdAt,
       })),
-      latestMessage: conversation.messages[0] || undefined,
+      lastMessage: conversation.lastMessage || undefined,
     };
   }
 
@@ -112,11 +108,13 @@ export class ConversationsService {
               select: {
                 id: true,
                 username: true,
+                isOnline: true,
+                lastSeen: true,
               },
             },
           },
         },
-        messages: {
+        lastMessage: {
           include: {
             user: {
               select: {
@@ -125,14 +123,10 @@ export class ConversationsService {
               },
             },
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: 1,
         },
       },
       orderBy: {
-        updatedAt: 'desc',
+        lastMessageAt: 'desc',
       },
     });
 
@@ -145,7 +139,7 @@ export class ConversationsService {
         user: p.user,
         createdAt: p.createdAt,
       })),
-      latestMessage: conversation.messages[0] || undefined,
+      lastMessage: conversation.lastMessage || undefined,
     }));
   }
 
@@ -166,11 +160,13 @@ export class ConversationsService {
               select: {
                 id: true,
                 username: true,
+                isOnline: true,
+                lastSeen: true,
               },
             },
           },
         },
-        messages: {
+        lastMessage: {
           include: {
             user: {
               select: {
@@ -179,10 +175,6 @@ export class ConversationsService {
               },
             },
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: 1,
         },
       },
     });
@@ -200,7 +192,7 @@ export class ConversationsService {
         user: p.user,
         createdAt: p.createdAt,
       })),
-      latestMessage: conversation.messages[0] || undefined,
+      lastMessage: conversation.lastMessage || undefined,
     };
   }
 
@@ -225,48 +217,8 @@ export class ConversationsService {
       throw new NotFoundException(`Conversation with ID ${id} not found`);
     }
 
-    const updatedConversation = await this.prisma.client.conversation.update({
-      where: { id },
-      data: updateConversationDto,
-      include: {
-        participants: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-          },
-        },
-        messages: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: 1,
-        },
-      },
-    });
-
-    return {
-      id: updatedConversation.id,
-      createdAt: updatedConversation.createdAt,
-      updatedAt: updatedConversation.updatedAt,
-      participants: updatedConversation.participants.map((p) => ({
-        id: p.id,
-        user: p.user,
-        createdAt: p.createdAt,
-      })),
-      latestMessage: updatedConversation.messages[0] || undefined,
-    };
+    // Since UpdateConversationDto is empty, just return the existing conversation
+    return this.findOne(id, userId);
   }
 
   async remove(id: string, userId: string): Promise<{ message: string }> {

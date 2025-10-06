@@ -14,8 +14,14 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Online status
+  isOnline    Boolean   @default(false)
+  lastSeen    DateTime?
+  
   messages Message[]
   conversations ConversationParticipant[]
+  readReceipts MessageReadReceipt[]
 }
 
 model Message { 
@@ -27,14 +33,24 @@ model Message {
   user      User     @relation(fields: [authorId], references: [id])
   conversationId String
   conversation Conversation @relation(fields: [conversationId], references: [id])
+  
+  readReceipts MessageReadReceipt[]
+  conversationsAsLastMessage Conversation[] @relation("LastMessage")
 }
 
 model Conversation {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Last message tracking for conversation list
+  lastMessageAt DateTime?
+  lastMessageId String?
+  
   messages Message[]
   participants ConversationParticipant[]
+  
+  lastMessage Message? @relation("LastMessage", fields: [lastMessageId], references: [id])
 }
 
 model ConversationParticipant {
@@ -48,4 +64,16 @@ model ConversationParticipant {
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   
   @@unique([userId, conversationId])
+}
+
+model MessageReadReceipt {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([messageId, userId])
 }
